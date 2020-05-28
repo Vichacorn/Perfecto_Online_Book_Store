@@ -4,6 +4,7 @@ var app = express();
 var path = require("path");
 var fs = require("fs");
 var bodyParser = require("body-parser");
+var config = require("./config/config");
 
 let current_order_num;
 let order_list;
@@ -12,11 +13,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(__dirname + "./files"));
 
 function getConnection() {
+  let d = config.dev
   return mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "", //if need, put your password here
-    database: "perfectoDB"
+    host: d.host,
+    user: d.username,
+    password: d.password, //if need, put your password here
+    database: d.database
   });
 }
 
