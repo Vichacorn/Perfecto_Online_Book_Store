@@ -283,4 +283,128 @@ app.post("/put_to_cart", (req, res) => {
 
   res.end();
 });
+
+app.post("/add_book", (req, res) => {
+
+  var BookID;
+  var BookName;
+  var AuthorID = 1;
+  var ISBN = 9999;
+  var BookPrice;
+  var Categories;
+
+  req.on('data', function (data) {
+    var d = JSON.parse(data);
+    BookID = d.BookID
+    BookName = d.BookName
+    Categories = d.Categories
+    BookPrice = d.BookPrice
+
+    const queryString =
+    "INSERT INTO book_detail (BookID, BookName, AuthorID, ISBN, BookPrice, Categories) VALUES (?, ?, ?, ?, ?, ?)";
+    getConnection().query(
+    queryString,
+    [BookID, BookName, AuthorID, ISBN, BookPrice, Categories],
+    (err, results) => {
+      if (err) {
+        console.log("failed");
+        res.sendStatus(500);
+        return;
+      }
+      res.send("Add Sucess")
+    }
+  );
+  });
+  
+});
+
+app.delete("/remove_book", (req, res) => {
+
+  var BookName
+
+  req.on('data', function (data) {
+    var d = JSON.parse(data);
+    BookName = d.BookName
+
+    const queryString =
+    "DELETE FROM book_detail WHERE BookName = ?";
+    getConnection().query(
+    queryString,
+    [BookName],
+    (err, results) => {
+      if (err) {
+        console.log("failed");
+        res.sendStatus(500);
+        return;
+      }
+      res.send("Remove Sucess")
+    }
+  );
+  });
+  
+});
+
+app.patch("/update_price_book", (req, res) => {
+
+  var BookName
+  var BookPrice
+
+  req.on('data', function (data) {
+    var d = JSON.parse(data);
+    BookName = d.BookName
+    BookPrice = d.BookPrice
+
+    const queryString =
+    "UPDATE book_detail SET BookPrice= ? WHERE BookName = ?";
+    if(BookPrice != null){
+    getConnection().query(
+    queryString,
+    [BookPrice,BookName],
+    (err, results) => {
+      if (err) {
+        console.log("failed");
+        res.sendStatus(500);
+        return;
+      }
+      res.send("Update Sucess")
+    }
+  );
+    }else{
+      res.send("failed")
+    }
+  });
+  
+});
+
+app.patch("/update_category_book", (req, res) => {
+
+  var BookName
+  var Categories
+  req.on('data', function (data) {
+    var d = JSON.parse(data);
+    BookName = d.BookName
+    Categories = d.Categories
+
+    const queryString =
+    "UPDATE book_detail SET Categories = ? WHERE BookName = ?";
+    if(Categories != null){
+    getConnection().query(
+    queryString,
+    [Categories,BookName],
+    (err, results) => {
+      if (err) {
+        console.log("failed");
+        res.sendStatus(500);
+        return;
+      }
+      res.send("Update Sucess")
+    }
+  );
+    }else{
+      res.send("failed")
+    }
+  });
+  
+});
+
 app.listen(1234);
