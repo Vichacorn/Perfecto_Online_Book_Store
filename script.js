@@ -61,6 +61,37 @@ async function getKey(){
   return;
 }
 
+var minutes = 5, the_interval = minutes * 60 * 1000;
+setInterval(async function() {
+  console.log("Retrive data")
+  await getKey();
+      
+      keyList.forEach(async key => {
+        const params = {
+          Bucket: config.dev.aws_media_bucket,
+          Key: key+".jpg",
+          Expires: 86400
+        };
+  
+        await s3.getSignedUrl('getObject', params, (err, url) => {
+          try{
+            const queryString = "UPDATE book_detail SET ImgURL= ? WHERE BookID = ?";
+            getConnection().query(queryString,[url,key],(err, results) => {
+            if (err) {
+            console.log("failed");
+            res.sendStatus(500);
+            return;
+          }
+        });
+          } catch(err){
+            console.log(err);
+          }
+        });
+        
+      });
+      keyList = [];
+  
+}, the_interval);
   
 
 
@@ -153,35 +184,8 @@ Categories_book.forEach(element => {
         .split("'")
         .join(""),
     async function(req, res) {
-      await getKey();
-      
-      keyList.forEach(async key => {
-        const params = {
-          Bucket: config.dev.aws_media_bucket,
-          Key: key+".jpg",
-          Expires: 60 * 5
-        };
-  
-        await s3.getSignedUrl('getObject', params, (err, url) => {
-          try{
-            const queryString = "UPDATE book_detail SET ImgURL= ? WHERE BookID = ?";
-            getConnection().query(queryString,[url,key],(err, results) => {
-            if (err) {
-            console.log("failed");
-            res.sendStatus(500);
-            return;
-          }
-          console.log("Update url success");
-        });
-          } catch(err){
-            console.log(err);
-          }
-        });
-        
-      });
-      keyList = [];
       // mysql here
-      connection.query(
+      await connection.query(
         "SELECT BookID, BookName, PenName, ISBN, BookPrice, Categories, ImgURL FROM book_detail, authors WHERE book_detail.AuthorID = authors.AuthorID and Categories = " +
           element,
         function(error, rows, fields) {
@@ -195,7 +199,7 @@ Categories_book.forEach(element => {
     });
   });
 
-app.get("/", function(req, res) {
+app.get("/", async function(req, res) {
   res.sendFile("index.html", { root: path.join(__dirname, "./files") });
 });
 
