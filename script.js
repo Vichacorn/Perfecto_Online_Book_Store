@@ -9,6 +9,17 @@ var config = require("./config/config");
 let current_order_num;
 let order_list;
 
+var AWS = require('aws-sdk');
+var keyList = [];
+
+const s3 = new AWS.S3({
+  accessKeyId:config.dev.accessKeyID,
+  secretAccessKey:config.dev.secretAccessKey,
+  sessionToken: config.dev.sessionToken,
+  Bucket: config.dev.aws_media_bucket
+});
+
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(__dirname + "./files"));
 
@@ -36,6 +47,22 @@ connection.connect(function(error) {
     console.log("Connected");
   }
 });
+
+async function getKey(){
+  const params = {
+    Bucket: config.dev.aws_media_bucket,
+    MaxKeys: 100
+  };
+
+  s3.listObjects(params, function (err, data) {
+  if(err)throw err;
+  JSON.stringify(data.Contents.forEach(e => keyList.push(e.Key.replace(".jpg","")) ));
+  });
+  return;
+}
+
+  
+
 
 app.get("/book_detail_rows_all", function(req, res) {
   // mysql here
@@ -125,10 +152,37 @@ Categories_book.forEach(element => {
         .join("_")
         .split("'")
         .join(""),
-    function(req, res) {
+    async function(req, res) {
+      await getKey();
+      
+      keyList.forEach(async key => {
+        const params = {
+          Bucket: config.dev.aws_media_bucket,
+          Key: key+".jpg",
+          Expires: 60 * 5
+        };
+  
+        await s3.getSignedUrl('getObject', params, (err, url) => {
+          try{
+            const queryString = "UPDATE book_detail SET ImgURL= ? WHERE BookID = ?";
+            getConnection().query(queryString,[url,key],(err, results) => {
+            if (err) {
+            console.log("failed");
+            res.sendStatus(500);
+            return;
+          }
+          console.log("Update url success");
+        });
+          } catch(err){
+            console.log(err);
+          }
+        });
+        
+      });
+      keyList = [];
       // mysql here
       connection.query(
-        "SELECT BookID, BookName, PenName, ISBN, BookPrice, Categories FROM book_detail, authors WHERE book_detail.AuthorID = authors.AuthorID and Categories = " +
+        "SELECT BookID, BookName, PenName, ISBN, BookPrice, Categories, ImgURL FROM book_detail, authors WHERE book_detail.AuthorID = authors.AuthorID and Categories = " +
           element,
         function(error, rows, fields) {
           if (error) {
@@ -138,9 +192,8 @@ Categories_book.forEach(element => {
           }
         }
       );
-    }
-  );
-});
+    });
+  });
 
 app.get("/", function(req, res) {
   res.sendFile("index.html", { root: path.join(__dirname, "./files") });

@@ -22,11 +22,13 @@
           var price;
           var tr = "";
           var item = "";
+          var url = ""
           $.each(data, function(i, val) {
             if (bookId > 0) {
               if (bookId == val.BookID) {
                 pen = pen + val.PenName + "; ";
               } else {
+                url = val.ImgURL;
                 item =
                   item +
                   '<meta itemprop="id" content="' +
@@ -35,7 +37,7 @@
                   isbn +
                   '" /><metaitemprop="name"content="' +
                   bookName +
-                  '"/><button id="id_button" value='+ bookId +'><figure class="effect-bubba"><img type="button" src="img/book.jpg" alt="fiction" class="img-fluid onclick="image()"" /><figcaption><p style="margin-top: 50px;">add to cart<br />' +
+                  '"/><button id="id_button" value='+ bookId +'><figure class="effect-bubba"><img type="button" src="'+url+'" alt="fiction" class="img-fluid onclick="image()"" /><figcaption><p style="margin-top: 50px;">add to cart<br />' +
                   price +
                   ' Baht</p><h6 style="margin-top: 20px;">' +
                   bookName +
@@ -47,6 +49,7 @@
                 price = val.BookPrice;
               }
             } else {
+              url = val.ImgURL;
               bookId = val.BookID;
               isbn = val.ISBN;
               bookName = val.BookName;
@@ -62,7 +65,7 @@
             isbn +
             '" /><meta itemprop="name"content="' +
             bookName +
-            '"/><button id="id_button" value='+ bookId  +'><figure class="effect-bubba"><img src="img/book.jpg" alt="fiction" class="img-fluid" /><figcaption><p style="margin-top: 50px;">add to cart<br />' +
+            '"/><button id="id_button" value='+ bookId  +'><figure class="effect-bubba"><img src="'+url+'" alt="fiction" class="img-fluid" /><figcaption><p style="margin-top: 50px;">add to cart<br />' +
             price +
             ' Baht</p><h6 style="margin-top: 20px;">' +
             bookName +
