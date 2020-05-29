@@ -48,7 +48,8 @@ connection.connect(function(error) {
   }
 });
 
-async function getKey(){
+async function updateKey(){
+  console.log("Retrive data")
   const params = {
     Bucket: config.dev.aws_media_bucket,
     MaxKeys: 100
@@ -58,38 +59,39 @@ async function getKey(){
   if(err)throw err;
   JSON.stringify(data.Contents.forEach(e => keyList.push(e.Key.replace(".jpg","")) ));
   });
-  return;
+  
+      
+  keyList.forEach(async key => {
+    const params = {
+        Bucket: config.dev.aws_media_bucket,
+        Key: key+".jpg",
+        Expires: 86400
+      };
+  
+    await s3.getSignedUrl('getObject', params, (err, url) => {
+      try{
+        const queryString = "UPDATE book_detail SET ImgURL= ? WHERE BookID = ?";
+        getConnection().query(queryString,[url,key],(err, results) => {
+        if (err) {
+        console.log("failed");
+        res.sendStatus(500);
+        return;
+      }
+    });
+        }catch(err){
+          console.log(err);
+        }
+      });
+        
+    });
+    keyList = [];
 }
+
+updateKey();
 
 var minutes = 5, the_interval = minutes * 60 * 1000;
 setInterval(async function() {
-  console.log("Retrive data")
-  await getKey();
-      
-      keyList.forEach(async key => {
-        const params = {
-          Bucket: config.dev.aws_media_bucket,
-          Key: key+".jpg",
-          Expires: 86400
-        };
-  
-        await s3.getSignedUrl('getObject', params, (err, url) => {
-          try{
-            const queryString = "UPDATE book_detail SET ImgURL= ? WHERE BookID = ?";
-            getConnection().query(queryString,[url,key],(err, results) => {
-            if (err) {
-            console.log("failed");
-            res.sendStatus(500);
-            return;
-          }
-        });
-          } catch(err){
-            console.log(err);
-          }
-        });
-        
-      });
-      keyList = [];
+  await updateKey();
   
 }, the_interval);
   
