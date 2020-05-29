@@ -60,7 +60,6 @@ async function updateKey(){
   JSON.stringify(data.Contents.forEach(e => keyList.push(e.Key.replace(".jpg","")) ));
   });
   
-      
   keyList.forEach(async key => {
     const params = {
         Bucket: config.dev.aws_media_bucket,

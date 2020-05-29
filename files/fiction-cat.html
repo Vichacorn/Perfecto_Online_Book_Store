@@ -27,7 +27,6 @@
               if (bookId == val.BookID) {
                 pen = pen + val.PenName + "; ";
               } else {
-                url = val.ImgURL;
                 item =
                   item +
                   '<meta itemprop="id" content="' +
@@ -43,6 +42,7 @@
                   ' Baht</p><h6 style="margin-top: 20px;">' +
                   bookName +
                   "</h6></figcaption></figure></button>";
+                url = val.ImgURL;
                 bookId = val.BookID;
                 bookName = val.BookName;
                 isbn = val.ISBN;
@@ -73,7 +73,7 @@
             ' Baht</p><h6 style="margin-top: 20px;">' +
             bookName +
             "</h6></figcaption></figure></button>";
-          $(item).appendTo(document.getElementById("book-shelf"));
+            $(item).appendTo(document.getElementById("book-shelf"));
         }
       });
     });
